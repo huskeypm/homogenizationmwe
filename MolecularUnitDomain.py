@@ -39,7 +39,6 @@ class MolecularUnitDomain(Domain):
     super(MolecularUnitDomain,self).__init__(type,EPS=boundaryTol)
     problem = self.problem
     problem.fileMesh = fileMesh
-    problem.fileSubdomains = fileSubdomains
     problem.init = 1
     self.reflectiveBoundary = reflectiveBoundary
     problem.name = name
@@ -54,9 +53,6 @@ class MolecularUnitDomain(Domain):
       print "Attempting to load ", problem.fileMesh
     mesh = Mesh(problem.fileMesh)
     problem.mesh = mesh
-    # mesh is in A, so converting to um
-    # DISABLED problem.mesh.coordinates()[:] *= parms.Ang_to_um
-    # Something is flawed here, since surface area==0 if conversion is used
 
     utilObj=self.utilObj
     utilObj.GeometryInitializations()
@@ -74,26 +70,14 @@ class MolecularUnitDomain(Domain):
     problem = self.problem
     nDim = np.shape(problem.mesh.coordinates())[1]
 
-    #print "Probably don't have the right BCs yet"
-    # TODO: might need to handle BC at active site as a mixed boundary
-    # condition to take into account saturation
-    u0 = Constant(np.zeros(nDim))
-    u1 = Constant(np.ones(nDim))
-
-    # use user-provided BC instead  
-    if(uBoundary != 0):
-      u1 = uBoundary
-
   # Create Dirichlet boundary condition
 
     bcs = []
     centerDomain = self.CenterDomain()
     centerDomain.problem = self.problem
-    #PKHfixed_center = DirichletBC(problem.V, Constant((0,0,0)), centerDomain, "pointwise")
     fixed_center = DirichletBC(problem.V, Constant(np.zeros(nDim)), centerDomain, "pointwise")
     bcs.append(fixed_center)
 
-    #PKH 120901 leftRightBoundary=self.PeriodicLeftRightBoundary()
     leftRightBoundary=self.LeftRightBoundary()
     leftRightBoundary.problem = self.problem
     #PKH 120901 bc1 = PeriodicBC(problem.V.sub(0), leftRightBoundary)
@@ -104,10 +88,8 @@ class MolecularUnitDomain(Domain):
     else:
       print "Labeling %s as reflective" % self.reflectiveBoundary
 
-    #PKH 120901 backFrontBoundary=self.PeriodicBackFrontBoundary()
     backFrontBoundary=self.BackFrontBoundary()
     backFrontBoundary.problem = self.problem
-    #PKH 120901 bc2 = PeriodicBC(problem.V.sub(1), backFrontBoundary)
     tc2 = DirichletBC(problem.V.sub(1), Constant(1.),backFrontBoundary)
     bc2 = DirichletBC(problem.V.sub(1), Constant(0.),backFrontBoundary)
     if(self.reflectiveBoundary!="backfront"):
