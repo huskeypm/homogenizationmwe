@@ -25,12 +25,10 @@ from homogutil import *
 import numpy as np
 class empty:pass
 
-#EPS = 1.e-10
-# make pretty lax
-#EPS = 1.e-1  
-# extremely lax for Tn
-#print "WARNING: Using large EPS value %f for boundary" % EPS
-#EPS = 2.
+# For marking the unit cell outer boundaries. 
+# Assumes the domain is square. 
+# Note that the criteria use problem.EPS - if there are problems marking a side correctly (e.g. noisy boundary), try adjusting the 
+# EPS value. 
 
 class Domain(object):
   #
