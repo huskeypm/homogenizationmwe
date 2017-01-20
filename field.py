@@ -26,7 +26,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
 from dolfin import *
-from params import *
 from homogutil import *
 import numpy as np
 
@@ -55,7 +54,7 @@ def solveHomog(domain,solver="gmres"):
   
   ## LHS terms 
   # Diffusion constant
-  Dbulk = problem.d
+  Dbulk = problem.d  # set diffusion coefficient 
   nDims = problem.nDims
   Dii  = Constant(Dbulk*np.ones(nDims))
   Aij = diag(Dii)  # for now, but could be anisotropic
@@ -65,9 +64,9 @@ def solveHomog(domain,solver="gmres"):
   # Identity matrix 
   Delta = Identity( mesh.ufl_cell().geometric_dimension()) #
  
-  # LHS 
-  form = inner(Atilde*(grad(u) + Delta), grad(v))*dx
-  
+  # LHS. 
+  #   dot (A grad u + I )) =0 
+  form = inner(Atilde*(grad(u) + Delta), grad(v))*dx  
   # note: we are mixing linear and bilinear forms, so we need to split
   # these up for assembler 
   LHS = lhs(form)
@@ -80,6 +79,7 @@ def solveHomog(domain,solver="gmres"):
 
   
   ## Compute solution
+  # We can use different solver types, depending on the convergence properies of the system 
   #solverType="original"
   solverType="krylov"
   #solve(a == L, x, problem.bcs)
@@ -134,6 +134,9 @@ def solveHomog(domain,solver="gmres"):
 
   return problem
 
+
+# Computes effective diffusion constant based on solution from solveHomog
+
 def compute_eff_diff(domain):
   problem = domain.problem
   mesh = problem.mesh
@@ -146,7 +149,8 @@ def compute_eff_diff(domain):
   us = TrialFunction(Vscalar)
   vs = TestFunction(Vscalar)
 
-  ## get omega
+  ## get omega (e.g. integration term below) 
+  # deff = 1/volUnitCell int( grad u + 1 dx ) 
   # treating each component independtly, following Goel's example in sec 2.7 
   import numpy as np
   omegas = np.zeros(dim)
@@ -161,23 +165,23 @@ def compute_eff_diff(domain):
     grad_Xi_component = x[i].dx(i)+Constant(1)
     outname = "diff%d.pvd" % i
 
-   
     #print "Solve for estimating Omegas" 
     solve(us*vs*dx_int==grad_Xi_component*vs*dx_int, D_eff_project)
-    #File(outname)<<D_eff_project
-  
+    #File(outname)<<D_eff_project  
     form = grad_Xi_component * dx_int
-  
+
     omegas[i] = assemble(form)
   
-  vol = assemble( Constant(1)*dx_int)#, mesh=mesh )
+  
   
 
   if MPI.rank(mpi_comm_world())==0:
     print "omegasO ",omegas
 
+  # normalize by volumeUnitCell to get deff
   d_eff = problem.d*omegas
   d_eff /= problem.volUnitCell
+
   if MPI.rank(mpi_comm_world())==0:
    if(dim==3):
     print "d_eff= [%4.2f,%4.2f,%4.2f] for d=%4.2f"%\
@@ -187,7 +191,8 @@ def compute_eff_diff(domain):
       (d_eff[0],d_eff[1],problem.d)
    print "problem.volUnitCell", problem.volUnitCell
 
-  # thought I was already storing this somewhere
+  # report volume frac for validation purposes 
+  vol = assemble( Constant(1)*dx_int)#, mesh=mesh )  
   problem.volFrac = vol / problem.volUnitCell
 
 
