@@ -3,9 +3,14 @@
 from dolfin import *
 import numpy as np
 
-# classes
+## Import helper classes
+# These classes contain functions the prepare the mesh for boundary condition assignments
+# and other initializations. 
 from DefaultUnitDomain import *
 from MolecularUnitDomain import *
+
+# Contains routines for computing homogenization corrector functions and using those solutions
+# to estimate effective coefficients
 import field 
 
 
@@ -16,18 +21,24 @@ def solve_homogeneous_unit(domain,debug=False,solver="gmres"):
   problem = domain.problem
   problem.d = 1.0  # diffusion constant
 
-  ## debug mode
+  ## solve 
   field.solveHomog(domain,solver=solver)
   problem.d_eff = field.compute_eff_diff(domain)
 
-def runHomog(fileXML="test.xml",verbose=False,\
+def runHomog(fileXML="test.xml",
+             verbose=False,\
+             solver = "gmres",  # default solver, but krylov is available 
              reflectiveBoundary=None):
+  # domain set up              
   molDomUnit = MolecularUnitDomain(fileXML,\
                  reflectiveBoundary=reflectiveBoundary)          
   molDomUnit.Setup()
   molDomUnit.AssignBC()
-  solve_homogeneous_unit(molDomUnit,solver="gmres") 
+  
+  # homog solver 
+  solve_homogeneous_unit(molDomUnit,solver=solver) 
 
+  # report results
   problem = molDomUnit.problem
   if(verbose and MPI.rank(mpi_comm_world())==0):
     print "From master node:" 
@@ -72,12 +83,14 @@ Notes:
   for i,arg in enumerate(sys.argv):
     if(arg=="-file"):
       fileXML=sys.argv[i+1] 
+      
+    # I don't think mumps is supported currently, but krylov is fair game   
     if(arg=="-mumps"):
       solver="mumps"
 
 
 
-  runHomog(fileXML,verbose=True)#,solver=solver)
+  runHomog(fileXML,verbose=True,solver=solver)
 
 
 
