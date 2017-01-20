@@ -157,20 +157,19 @@ def compute_eff_diff(domain):
   x = problem.x  
   # I iterate only over the diagonal, since my original diffusion constant is diagonal 
   for i in range(dim):
-
-    # JOHAN 
-    D_eff_project = Function(Vscalar)
-
-    ## apply leading exp(-PMF) term to diff. integral for homogenized smol eqn  
+    ## This is used for evaluating grad(x)+1
+    # x[i].dx(i) is the gradient of the ith component of our solution
+    # along the ith direction 
     grad_Xi_component = x[i].dx(i)+Constant(1)
-    outname = "diff%d.pvd" % i
-
-    #print "Solve for estimating Omegas" 
-    solve(us*vs*dx_int==grad_Xi_component*vs*dx_int, D_eff_project)
-    #File(outname)<<D_eff_project  
     form = grad_Xi_component * dx_int
-
     omegas[i] = assemble(form)
+
+    # for visualizing intermediate results 
+    #D_eff_project = Function(Vscalar)
+    #outname = "diff%d.pvd" % i
+    #solve(us*vs*dx_int==grad_Xi_component*vs*dx_int, D_eff_project)
+    #File(outname)<<D_eff_project  
+
   
   
   

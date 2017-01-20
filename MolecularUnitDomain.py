@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 ----------------------------------------------------------------------------
 """
-# Defines boundary conditions, etc for microdomain
+# Defines boundary conditions, etestBC for microdomain
 from dolfin import *
 from params import *
 from Domain import *
@@ -78,13 +78,13 @@ class MolecularUnitDomain(Domain):
     fixed_center = DirichletBC(problem.V, Constant(np.zeros(nDim)), centerDomain, "pointwise")
     bcs.append(fixed_center)
 
-    # for solution in the x direction [sub(0)], we set the left and right boundaries to 1 and 0, respectively. 
+    # for solution in the x direction [sub(0)], we set the boundaries along one direction to 0
     # I don't recall why I'm setting one side to 1. though, since I was using these dirichlets to replace a complicated
-    # periodic bc. 
+    # periodic bc. It doesn't appear to influence the solution though  
     leftRightBoundary=self.LeftRightBoundary()
     leftRightBoundary.problem = self.problem
     #PKH 120901 bc1 = PeriodicBC(problem.V.sub(0), leftRightBoundary)
-    tc1 = DirichletBC(problem.V.sub(0), Constant(1.),leftRightBoundary)
+    testBC1 = DirichletBC(problem.V.sub(0), Constant(1.),leftRightBoundary) 
     bc1 = DirichletBC(problem.V.sub(0), Constant(0.),leftRightBoundary)
     if(self.reflectiveBoundary!="leftright"):
       bcs.append(bc1)
@@ -94,7 +94,7 @@ class MolecularUnitDomain(Domain):
     # same thing for top/bottom along y direction [sub(1)]
     backFrontBoundary=self.BackFrontBoundary()
     backFrontBoundary.problem = self.problem
-    tc2 = DirichletBC(problem.V.sub(1), Constant(1.),backFrontBoundary)
+    testBC2 = DirichletBC(problem.V.sub(1), Constant(1.),backFrontBoundary)
     bc2 = DirichletBC(problem.V.sub(1), Constant(0.),backFrontBoundary)
     if(self.reflectiveBoundary!="backfront"):
       bcs.append(bc2)
@@ -109,7 +109,7 @@ class MolecularUnitDomain(Domain):
       topBottomBoundary=self.TopBottomBoundary()
       topBottomBoundary.problem = self.problem
       #PKH 120901 bc3 = PeriodicBC(problem.V.sub(2), topBottomBoundary)
-      tc3 = DirichletBC(problem.V.sub(2), Constant(1.),topBottomBoundary)
+      testBC3 = DirichletBC(problem.V.sub(2), Constant(1.),topBottomBoundary)
       bc3 = DirichletBC(problem.V.sub(2), Constant(0.),topBottomBoundary)
       if(self.reflectiveBoundary!="topbottom"):
         bcs.append(bc3)
@@ -120,10 +120,10 @@ class MolecularUnitDomain(Domain):
     testBC=True
     if(testBC):
       z = Function(problem.V)
-      tc1.apply(z.vector())
-      tc2.apply(z.vector())
+      testBC1.apply(z.vector())
+      testBC2.apply(z.vector())
       if(nDim>2):
-        tc3.apply(z.vector())
+        testBC3.apply(z.vector())
       File("appliedBCs.pvd") << z
     
     problem.bcs = bcs
