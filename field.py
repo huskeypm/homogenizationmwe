@@ -44,11 +44,7 @@ EPS = 1.e-10
 def CalcConc(domain):
   problem = domain.problem
   mesh = problem.mesh 
-  if(domain.gamer==0):
-    problem.conc = assemble( problem.x[0] * dx(domain=mesh))
-  else:
-    raise RuntimeError("add") 
-    problem.conc = assemble( problem.x[0] * dx(1),mesh=problem.mesh)
+  problem.conc = assemble( problem.x[0] * dx(domain=mesh))
 
   #problem.conc /= assemble( Constant(1)*dx,mesh=problem.mesh)
   problem.conc /= problem.volume
@@ -61,13 +57,11 @@ def CalcConc(domain):
 # See notetaker notes from 2012-04-19 (pg 11) 
 # Using first-order representation from Higgins paper ()
 # type - scalar is valid only for certain cases
-# smol - add in smol. approach 
 # solverMode - gmres/mumps
-def solveHomog(domain,smolMode=False,solver="gmres"):     
+def solveHomog(domain,solver="gmres"):     
   solverMode = solver 
   # mesh
   problem = domain.problem
-  problem.smolMode=smolMode
   mesh = problem.mesh
   V = problem.V
 
@@ -83,31 +77,12 @@ def solveHomog(domain,smolMode=False,solver="gmres"):
   Aij = diag(Dii)  # for now, but could be anisotropic
   Atilde = Aij 
 
-  # electro 
-  if(smolMode==True):         
-    if(domain.gamer==1):
-      raise RuntimeError("project() does not work with Gamer meshes. Try removing 'domain' info from mesh and rerunning without gamer tag")
-    print "Adding in electrostatic component" 
-    Vscalar = FunctionSpace(mesh,"CG",1)
-    intfact = Function(Vscalar)
-    intfact.vector()[:]    =    np.exp(-parms.beta * problem.pmf.vector()[:])
-    print "WARTNINtg: can get veriy high pmf values that may present problems for numberial solver" 
-    pm = np.asarray(problem.pmf.vector()[:]); print "pmf Min/Max %f,%f "  % (np.min(pm),np.max(pm))
-    
-    ifact = np.asarray(intfact.vector()[:])
-    #print "Intfact: exp(p); %f,%f "  % (np.min(ifact),np.max(ifact))
-    Atilde = intfact * Aij
-    File("distro.pvd") << intfact
   
   # Identity matrix 
   Delta = Identity( mesh.ufl_cell().geometric_dimension()) #
  
   # LHS 
-  #print "Gamer", domain.gamer
-  if(domain.gamer==0):
-    form = inner(Atilde*(grad(u) + Delta), grad(v))*dx
-  else:
-    form = inner(Atilde*(grad(u) + Delta), grad(v))*dx(1) 
+  form = inner(Atilde*(grad(u) + Delta), grad(v))*dx
   
   # note: we are mixing linear and bilinear forms, so we need to split
   # these up for assembler 
@@ -196,10 +171,7 @@ def compute_eff_diff(domain):
   dim = mesh.ufl_cell().geometric_dimension()
 
 
-  if(domain.gamer==1):
-    dx_int = dx(1)
-  else:
-    dx_int = dx(domain=mesh)
+  dx_int = dx(domain=mesh)
 
   Vscalar = FunctionSpace(mesh,"CG",1)
   us = TrialFunction(Vscalar)
@@ -218,14 +190,7 @@ def compute_eff_diff(domain):
     D_eff_project = Function(Vscalar)
 
     ## apply leading exp(-PMF) term to diff. integral for homogenized smol eqn  
-    if(problem.smolMode):
-      intfact = Function(Vscalar)
-      intfact.vector()[:]    =    np.exp(-parms.beta * problem.pmf.vector()[:])
-      grad_Xi_component = intfact*(x[i].dx(i)+Constant(1))
-
-    ## standard approach
-    else:
-      grad_Xi_component = x[i].dx(i)+Constant(1)
+    grad_Xi_component = x[i].dx(i)+Constant(1)
     outname = "diff%d.pvd" % i
 
    

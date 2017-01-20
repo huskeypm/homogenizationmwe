@@ -4,16 +4,14 @@
 import homog
 import MolecularUnitDomain
 from dolfin import *
-def runHomog(fileXML="test.xml",psi="none",verbose=False,\
-             gamer=0,reflectiveBoundary="none",solver="gmres"):
-  fileSubdomains = "none"
-  #psiVals = np.asarray(psi.vector()[:])
-  #print "Min/Max potent", np.min(psiVals), np.max(psiVals)
+def runHomog(fileXML="test.xml",verbose=False,\
+             reflectiveBoundary=None):
+  fileSubdomains = None   
   molDomUnit = MolecularUnitDomain.MolecularUnitDomain(fileXML,fileSubdomains,\
-                 reflectiveBoundary=reflectiveBoundary,gamer=0)
+                 reflectiveBoundary=reflectiveBoundary)          
   molDomUnit.Setup()
   molDomUnit.AssignBC()
-  homog.solve_homogeneous_unit(molDomUnit,solver=solver)
+  homog.solve_homogeneous_unit(molDomUnit,solver="gmres") 
 
   problem = molDomUnit.problem
   if(verbose and MPI.rank(mpi_comm_world())==0):

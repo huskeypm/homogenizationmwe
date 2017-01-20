@@ -98,21 +98,8 @@ def solve_homogeneous_unit(domain,type="field",debug=0,smolMode=False,solver="gm
     return
 
   ## solve homog
-  # using scalar fields 
-  if(type=="scalar"):
-    print "I cannot guarantee this is correct..."
-    scalar.solveHomog(domain)
-    D_eff = scalar.compute_eff_diff(domain)
-    d_eff = np.array([D_eff,D_eff,D_eff])
-
-  # using vector fields 
-  elif (type=="field"):
-    field.solveHomog(domain,smolMode=smolMode,solver=solver)
-    d_eff = field.compute_eff_diff(domain)
-
-  else:
-    print "Not supported"
-    quit()
+  field.solveHomog(domain,solver=solver)
+  d_eff = field.compute_eff_diff(domain)
 
   problem.d_eff = d_eff
 
@@ -418,9 +405,6 @@ def SolveHomogSystem(debug=0,\
   cellPrefix="none",molPrefix="none",wholeCellPrefix="none",\
 # use effective diffusion constant from molecular domain 
   useMoldeff=1,\
-  smolMode = False,\
-  smolq = smolq,\
-  smolPsi = "none",\
 # is molecule from Gamer?
   molGamer=1,\
 # to force boundary to be reflective 
@@ -459,17 +443,12 @@ def SolveHomogSystem(debug=0,\
       meshFileInner = root+molPrefix
       subdomainFileInner = root+molPrefix
 
-    if(smolMode==True):
-      potentialFileInner = root+molPrefix+"_values.xml.gz"
-    else: 
-      potentialFileInner  = "none"
+    potentialFileInner  = "none"
     
     molDomUnit = MolecularUnitDomain(meshFileInner,subdomainFileInner,\
       filePotential = potentialFileInner,type="field",gamer=molGamer,\
-      psi = smolPsi, q = smolq,\
       reflectiveBoundary=reflectiveBoundary,
       outpath=outbase,name=tag+molPrefix,boundaryTol=boundaryTolerance)
-    molDomUnit.problem.smolMode = smolMode
     # 
     if(option=="troponin"):
       molDomUnit.problem.scale = np.array([0.9*np.sqrt(2)/2.,0.9*np.sqrt(2)/2.,0.9])
@@ -502,8 +481,7 @@ def SolveHomogSystem(debug=0,\
   # molecular 
   if(molPrefix!="none"): 
     print "Solving molecular unit cell using %s"% meshFileInner
-    molDomUnit.smolMode = smolMode
-    solve_homogeneous_unit(molDomUnit,type="field",debug=debug,smolMode=smolMode)
+    solve_homogeneous_unit(molDomUnit,type="field",debug=debug)
   else:
     #int "WARNING: Using stored d_eff for mol"   
     molDomUnit.problem.d_eff = np.array([1,1,1])
@@ -541,276 +519,6 @@ def SolveHomogSystem(debug=0,\
 
   ## return 
   return results
-
-# ValidationSphere case for simple charged sphere 
-def ValidationSphere():
-  root = "/home/huskeypm/scratch/validation/sphere/"
-  molPrefix = "sphere"
-  #molDomUnit.problem.mesh.coordinates()[:]*0.5005 
-
-  ## simple sphere 
-  molDomUnit = DefaultUnitDomain()
-  molDomUnit.Setup()
-  molDomUnit.AssignBC()
-  problem = molDomUnit.problem
-  problem.pmf = Function( FunctionSpace(problem.mesh,"CG",1))
-  problem.pmf.vector()[:] = np.arange(729)/729. - 0.5
-  #problem.pmf.vector()[:] = 0
-  File("test.pvd") << problem.pmf
-  #problem.pmf.vector()[:] = 0
-  smolMode = True
-  smolMode = False
-  solve_homogeneous_unit(molDomUnit,type="field",debug=debug,smolMode=smolMode)
-  quit()
-
-  ## gamer sphere 
-  print "No electro" 
-  smolMode = False # tells program that we want to solve the smol equation for the molec domain
-  noelectroResults = SolveHomogSystem(debug=debug,\
-    root=root,\
-    molPrefix=molPrefix,
-    smolMode = smolMode,\
-    molGamer=0)
-
-  print "With electro"
-  smolMode = True # tells program that we want to solve the smol equation for the molec domain
-  electroResults = SolveHomogSystem(debug=debug,\
-    root=root,\
-    molPrefix=molPrefix,
-    smolMode = smolMode,\
-    molGamer=0)
-
-  # compare diff const
-  d_eff_noelectro = noelectroResults.molDomUnit.problem.d_eff
-  #nd_eff_noelectro = d_eff_noelectro / np.linalg.norm(d_eff_noelectro)
-  d_eff_electro = electroResults.molDomUnit.problem.d_eff
-  #nd_eff_electro = d_eff_electro / np.linalg.norm(d_eff_electro)
-  #print "Deff (No Electro) ", nd_eff_noelectro
-  #print "Deff (Electro) ", nd_eff_electro
-
-def ValidationLayered(mode):
-    results = SolveHomogSystem(debug=debug,\
-        root="./example/layered/",\
-        cellPrefix="none", molPrefix="auriault",wholeCellPrefix="none",\
-        smolMode = False,\
-        molGamer=molGamer,
-        reflectiveBoundary="backfront",
-        tag=mode)
-
-    #results.molDomUnit.problem.x
-    mins=np.min(results.molDomUnit.problem.mesh.coordinates(),axis=0)
-    maxs=np.max(results.molDomUnit.problem.mesh.coordinates(),axis=0)
-    res = (maxs - mins)/0.05j
-    V=FunctionSpace(results.molDomUnit.problem.mesh,"CG",1)
-    x0 = project(results.molDomUnit.problem.x[0],V=V)
-    x1 = project(results.molDomUnit.problem.x[1],V=V)
-
-    from scipy.interpolate import griddata
-    (gx,gy) = np.mgrid[mins[0]:maxs[0]:res[0],mins[1]:maxs[1]:res[1]]
-    interp0 = griddata(results.molDomUnit.problem.mesh.coordinates(),x0.vector(),(gx,gy))
-    interp0 = np.mean(interp0,axis=1)
-    interp1 = griddata(results.molDomUnit.problem.mesh.coordinates(),x1.vector(),(gx,gy))
-    interp1 = np.mean(interp1,axis=0)
-
-    # analytical (X1(x) = 0), Eqn 87a, Auriault 1993  
-    xs = gx[:,0]
-    analx = np.zeros(np.shape(xs)[0])
-    # analytical (X2(x) = 0), Eqn 87c, Auriault 1993  
-    ys = gy[0,:]
-    analy = -1 * (ys ) + np.min(ys) + 1 # shifting, since aribtraty constant 
-
-   
-    import matplotlib.pyplot as plt
-    plt.figure()
-    plt.plot(ys,analy,"b-",label="Analytical")
-    plt.plot(gy[0,:],interp1,"k.",label="Predicted") 
-    plt.title("Layered medium ")
-    plt.ylabel("$\chi_2$")
-    plt.xlabel("y")
-    plt.legend()
-    plt.gcf().savefig("layered.png") 
-
-def ValidationLattice():
-    allsummary=[]
-    mode="valid"
-    #python ~/localTemp/srcs/homogenization/homog.py -case custom  -molPrefix 1p50 -molGamer
-    molPrefix = "1p50"
-    #molPrefix = "test"
-    molPrefixes = ["0p50","0p75","1p01","1p25","1p50"]
-    cellEdge = 2.
-    interstitialEdges= np.array([0.50,0.75,1.01,1.25,1.50])
-    molEdges    = cellEdge - interstitialEdges
-    cellVol = cellEdge**3
-    interstitialVol = cellVol - (molEdges**3)
-    interstitialVolFrac = interstitialVol/cellVol 
-
-    
-    molGamer = 1
-    allResults = empty()
-    allResults.norms = np.zeros( len(molEdges) )
-    allResults.lambdax= np.zeros( len(molEdges) )
-    allResults.Deff = np.zeros( [len(molEdges),3] )
-    for i,molPrefix in enumerate(molPrefixes):
-      print "molPrefix"
-      results = SolveHomogSystem(debug=debug,\
-        root="./example/lattice/",\
-        cellPrefix="none", molPrefix=molPrefix,wholeCellPrefix="none",\
-        smolMode = False,\
-        molGamer=molGamer,
-        tag=mode)
-
-      allResults.norms[i]  = np.linalg.norm(results.molDomUnit.problem.d_eff)
-      r=results.molDomUnit.problem.d_eff    
-      allResults.Deff[i,:] = r[:]
-      allResults.lambdax[i] = 1 / np.sqrt(r[0]/parms.d)
-      print "WHY AM I NORMALIZED?"
-      #r = r/np.linalg.norm(r)
-      summary = "%s & Deff (%e,%e,%e) \\ \n" % (mode,r[0],r[1],r[2])
-      allsummary.append(summary)
-
-    # plot 
-    import matplotlib.pyplot as plt
-    plt.figure()
-    plt.plot(molEdges,allResults.norms,'k--')
-    plt.scatter(molEdges,allResults.norms)
-    plt.ylabel("|D| [$m^2/s$]")
-    plt.xlabel("Edge length [m]")
-    plt.title("Diffusivity versus molecule size")
-    f=plt.gcf()
-    f.savefig("Boxes.png")
-
-    # plot 
-    plt.figure()
-    plt.plot(molEdges,allResults.lambdax,'k-')
-    plt.scatter(molEdges,allResults.lambdax)
-    plt.ylabel("$\lambda\; [m^2/s$]")
-    plt.xlabel("Edge length [m]")
-    plt.title("Diffusivity versus molecule size")
-    f=plt.gcf()
-    f.savefig("Lambda.png")
-
-    #plt 
-    # 
-    upperBound = 2 * interstitialVolFrac / (3-interstitialVolFrac)# per El-Kareh
-    plt.figure()
-    plt.plot(interstitialVolFrac,allResults.Deff[:,0]/parms.d,'k.',
-      markersize=10,label="$D_{eff,x}$")
-    #plt.plot(interstitialVolFrac,allResults.Deff[:,1]/parms.d,'g.',label="$D_{eff,x}$")
-    #plt.plot(interstitialVolFrac,allResults.Deff[:,2]/parms.d,'b.',label="$D_{eff,x}$")
-    # 
-    plt.plot(interstitialVolFrac,upperBound,'k-',label="upper bound")
-    lowerBound = 2/3. * interstitialVolFrac
-    plt.plot(interstitialVolFrac,lowerBound,'k--',label="lower bound")
-    plt.ylabel("$D_{eff}/D$")
-    plt.xlabel("$\phi$")
-    plt.title("Cube Lattice: Effective diffusion versus volume fraction")
-    # plt.xlim([0,1.])
-    # plt.ylim([0,1.])
-    plt.legend(loc=0)#["x","y","z"]) # ,"analy"])
-    f=plt.gcf()
-    f.savefig("diff_vs_volfrac.png")
-
-    # Unit test 
-    #value130403 = 0.823667233788
-    value130604 = 0.476182607736
-    value = allResults.Deff[0,0]/parms.d
-    assert(np.abs(value-value130604) < 0.001), "RESULT CHANGED. DO NOT COMMIT"
-
-
-    return (molEdges,allResults)
-
-
-# Paper validation, fig gen
-def ValidationPaper(mode="all"):
-  allsummary=[]
-
-  if(mode == "lattice" or mode == "all"):
-    ValidationLattice()
-
-  if(mode == "layered" or mode == "all"):
-    ValidationLayered(mode)
-
-#  if(mode=="troponinNoChg" or mode =="all"):
-#    molPrefix = "troponin"
-#    results = SolveHomogSystem(debug=debug,\
-#      root="/home/huskeypm/scratch/homog/mol/",\
-#      cellPrefix="none", molPrefix=molPrefix,wholeCellPrefix="none",\
-#      smolMode = "false",
-#      molGamer=0,option="troponin",\
-#      tag=mode)
-#
-#    r=results.molDomUnit.problem.d_eff    
-#    r = r/np.linalg.norm(r)
-#    summary = "%s & Deff (%e,%e,%e) \\ \n" % (mode,r[0],r[1],r[2])
-#    allsummary.append(summary)
-#
-#  if(mode=="troponinWChg" or mode =="all"):
-#    molPrefix = "troponin"
-#    results = SolveHomogSystem(debug=debug,\
-#      root="/home/huskeypm/scratch/homog/mol/",\
-#      cellPrefix="none", molPrefix=molPrefix,wholeCellPrefix="none",\
-#      smolMode = "true",
-#      molGamer=0,option="troponin",\
-#      tag=mode)
-#
-#    r=results.molDomUnit.problem.d_eff    
-#    r = r/np.linalg.norm(r)
-#    summary = "%s & Deff (%e,%e,%e) \\ \n" % (mode,r[0],r[1],r[2])
-#    allsummary.append(summary)
-#
-#  if(mode=="cellOnly"):
-#    #parms.tStep = 2
-#    wholeCellPrefix="multi_clustered"
-#    results = SolveHomogSystem(debug=debug,\
-#      root="/home/huskeypm/scratch/homog/mol/",\
-#      cellPrefix="none", molPrefix="none",wholeCellPrefix=wholeCellPrefix,\
-#      smolMode = "false",
-#      molGamer=0,\
-#      tag=mode)
-#
-#      # no need to print diff 
-#
-#  if(mode=="totalNoChg" or mode=="all"): 
-#    #parms.tStep = 2
-#    cellPrefix="cell"
-#    wholeCellPrefix="multi_clustered"
-#    molPrefix = "troponin"
-#    results = SolveHomogSystem(debug=debug,\
-#      root="/home/huskeypm/scratch/homog/mol/",\
-#      cellPrefix=cellPrefix, molPrefix=molPrefix,wholeCellPrefix=wholeCellPrefix,\
-#      smolMode = "false",
-#      molGamer=0,option="troponin",\
-#      tag=mode)
-#
-#    r=results.molDomUnit.problem.d_eff    
-#    r = r/np.linalg.norm(r)
-#    summary = "%s & Deff (%e,%e,%e) \\ \n" % (mode,r[0],r[1],r[2])
-#    allsummary.append(summary)
-#
-#  if(mode=="totalWChg" or mode =="all"):
-#    cellPrefix="cell"
-#    wholeCellPrefix="multi_clustered"
-#    molPrefix = "troponin"
-#    results = SolveHomogSystem(debug=debug,\
-#      root="/home/huskeypm/scratch/homog/mol/",\
-#      cellPrefix=cellPrefix, molPrefix=molPrefix,wholeCellPrefix=wholeCellPrefix,\
-#      smolMode = "true",
-#      molGamer=0,option="troponin",\
-#      tag=mode)
-#
-#    r=results.molDomUnit.problem.d_eff    
-#    r = r/np.linalg.norm(r)
-#    summary = "%s & Deff (%e,%e,%e) \\ \n" % (mode,r[0],r[1],r[2])
-#    allsummary.append(summary)
-#
-#
-  print allsummary
-
-
-
-
-
-  
 
 
 ##

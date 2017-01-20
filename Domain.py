@@ -131,27 +131,11 @@ class Domain(object):
 
     self.utilObj = homogutil(problem)
     self.type = type
-    self.gamer = 0 # meshes recorded by gamer are marked differently
     self.problem = problem
 
   def AssignBC(self,uBoundary=0):
     problem = self.problem
 
-    #print "Probably don't have the right BCs yet"
-    # TODO: might need to handle BC at active site as a mixed boundary
-    # condition to take into account saturation
-    if(self.type=="scalar"):
-        print "REPLACE THIS AS DEBUG OPTION. scalar approach is nonsensical"
-        quit()
-        u0 = Constant(0.)
-        u1 = Constant(1.)
-    elif(self.type=="field"):
-        u0 = Constant((0.,0,0.))
-        u1 = Constant((1.,1.,1.))
-
-    # use user-provided BC instead  
-    if(uBoundary != 0):
-      u1 = uBoundary
 
   # Create Dirichlet boundary condition
     bcs = []
@@ -184,12 +168,7 @@ class Domain(object):
   def CalcGeom(self,problem):
     # SA
     mesh = problem.mesh
-    if(self.gamer==0):
-      areaExpr = Constant(1.) * ds(domain=mesh)
-    if(self.gamer==1):
-      raise RuntimeError("I don't think is is working for gamer correctl")
-      areaExpr = Constant(1.)*ds(1,domain=mesh) + Constant(1.)*ds(5,domain=mesh)
-      
+    areaExpr = Constant(1.) * ds(domain=mesh)
     # 
     area = assemble(areaExpr)#, mesh=problem.mesh)
 
@@ -197,12 +176,7 @@ class Domain(object):
     # this is the 'beta' term in the Goel papers 
 
     # VOL 
-    if(self.gamer==0):
-      #vol = assemble(Constant(1.) * dx, mesh=problem.mesh)
-      vol = assemble(Constant(1.) * dx(domain=mesh))
-    if(self.gamer==1):
-      #raise RuntimeError("Need to add support") 
-      vol = assemble(Constant(1.) * dx(1,domain=mesh), mesh=problem.mesh)
+    vol = assemble(Constant(1.) * dx(domain=mesh))
     problem.volume = vol
     #print "SA: %e [um^2]" % area
     #print "Volume: %e [um^3]" % vol  

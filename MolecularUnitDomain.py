@@ -24,7 +24,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 from dolfin import *
 from params import *
 from Domain import *
-import smol
 
 markerActiveSite = 1
 markerMolecularBoundary =4
@@ -54,33 +53,23 @@ markerOuterBoundary=5
 
 
 #
-# filePotential - electrostatic potential from APBS, interpolated to FE mesh
 class MolecularUnitDomain(Domain):
-  def __init__(self,fileMesh,fileSubdomains,filePotential="none",\
+  def __init__(self,fileMesh,fileSubdomains,\
     # scalar (wrong) or field
     type="field",\
     boundaryTol=1e-1,\
-    # doe mesh come from gamer?
-    gamer=1,\
     outpath="./",\
     name = "Molecular",\
-    reflectiveBoundary="none",  # use this to force outer cell boundary as reflective, instead of dirichlet 
-    q = 2.0,  # charge Ca2+ 
-    psi = "none" # usually none, unless psi potential is passed in 
+    reflectiveBoundary="none"  # use this to force outer cell boundary as reflective, instead of dirichlet 
     ):
     super(MolecularUnitDomain,self).__init__(type,EPS=boundaryTol)
     problem = self.problem
     problem.fileMesh = fileMesh
     problem.fileSubdomains = fileSubdomains
-    problem.filePotential= filePotential 
     problem.init = 1
     self.reflectiveBoundary = reflectiveBoundary
-    #print "Enforcing gamer==1"
-    self.gamer = gamer
     problem.name = name
     problem.outpath = outpath
-    problem.q = q 
-    problem.psi = psi 
     self.markerOuterBoundary = markerOuterBoundary
     problem.smolMode = False
 
@@ -102,20 +91,7 @@ class MolecularUnitDomain(Domain):
     # PKH PBC Not used anymore 
     #utilObj.DefinePBCMappings()
 
-    if(self.type=="scalar"):
-        problem.V = FunctionSpace(mesh,"CG",1)
-    elif(self.type=="field"):
-        problem.V = VectorFunctionSpace(mesh,"CG",1)
-
-    #print "Not loading subdomains, since don't think they're needed"
-    #problem.subdomains = MeshFunction(
-    #  "uint", mesh, problem.fileSubdomains)
-    #self.markers = [1,4,5]
-
-    # load ESP 
-    if(problem.filePotential!="none" or problem.psi!="none"):
-      problem.smolMode=True
-      self.InitializeElectrostatics()
+    problem.V = VectorFunctionSpace(mesh,"CG",1)
 
     # geom
     self.CalcGeom(problem)
@@ -129,15 +105,8 @@ class MolecularUnitDomain(Domain):
     #print "Probably don't have the right BCs yet"
     # TODO: might need to handle BC at active site as a mixed boundary
     # condition to take into account saturation
-    if(self.type=="scalar"):
-        raise RuntimeError("REPLACE THIS AS DEBUG OPTION. scalar approach is nonsensical") 
-        u0 = Constant(0.)
-        u1 = Constant(1.)
-    elif(self.type=="field"):
-        #u0 = Constant((0.,0,0.))
-        #u1 = Constant((1.,1.,1.))
-        u0 = Constant(np.zeros(nDim))
-        u1 = Constant(np.ones(nDim))
+    u0 = Constant(np.zeros(nDim))
+    u1 = Constant(np.ones(nDim))
 
     # use user-provided BC instead  
     if(uBoundary != 0):
@@ -199,21 +168,3 @@ class MolecularUnitDomain(Domain):
     
     problem.bcs = bcs
 
-
-  def InitializeElectrostatics(self):
-      problem = self.problem
-      # load in psi from file 
-      Vtemp = FunctionSpace(problem.mesh,"CG",1)
-      if(problem.psi=="none"): 
-        print "Loading electrostatic potential from file"        
-        psi = Function(Vtemp,problem.filePotential)
-   
-      # load in psi from argument 
-      else: 
-        print "Loading electrostatic potential from argument"
-        psi = problem.psi
-
-      smol.ElectrostaticPMF(problem,psi,V=Vtemp,q=problem.q) # pmf stored internally             
-      #File("pmftest.pvd") << problem.psi
-      #File("pmftest.pvd") << psi
-      #quit()
