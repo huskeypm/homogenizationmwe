@@ -32,12 +32,12 @@ class MolecularUnitDomain(Domain):
     boundaryTol=1e-1,\
     outpath="./",\
     name = "Molecular",\
-    reflectiveBoundary="none"  # use this to force outer cell boundary as reflective, instead of dirichlet 
+    reflectiveBoundary="none"  # use this to force outer cell boundary as reflective, instead of dirichlet
+                               # this is equivalent to having an inclusion boundary coincident with the unit cell boundary
     ):
     super(MolecularUnitDomain,self).__init__(type,EPS=boundaryTol)
     problem = self.problem
     problem.fileMesh = fileMesh
-    problem.init = 1
     self.reflectiveBoundary = reflectiveBoundary
     problem.name = name
     problem.outpath = outpath
@@ -68,14 +68,19 @@ class MolecularUnitDomain(Domain):
     problem = self.problem
     nDim = np.shape(problem.mesh.coordinates())[1]
 
-  # Create Dirichlet boundary condition
-
+    # Create Dirichlet boundary conditions
+    # In order to have a unique solution, we arbitrarily set a point to 0. This 
+    # doesn't influence the determination of the effective coefficients, since they
+    # are based on the gradient of the correction function solution. 
     bcs = []
     centerDomain = self.CenterDomain()
     centerDomain.problem = self.problem
     fixed_center = DirichletBC(problem.V, Constant(np.zeros(nDim)), centerDomain, "pointwise")
     bcs.append(fixed_center)
 
+    # for solution in the x direction [sub(0)], we set the left and right boundaries to 1 and 0, respectively. 
+    # I don't recall why I'm setting one side to 1. though, since I was using these dirichlets to replace a complicated
+    # periodic bc. 
     leftRightBoundary=self.LeftRightBoundary()
     leftRightBoundary.problem = self.problem
     #PKH 120901 bc1 = PeriodicBC(problem.V.sub(0), leftRightBoundary)
@@ -86,6 +91,7 @@ class MolecularUnitDomain(Domain):
     else:
       print "Labeling %s as reflective" % self.reflectiveBoundary
 
+    # same thing for top/bottom along y direction [sub(1)]
     backFrontBoundary=self.BackFrontBoundary()
     backFrontBoundary.problem = self.problem
     tc2 = DirichletBC(problem.V.sub(1), Constant(1.),backFrontBoundary)
@@ -97,6 +103,7 @@ class MolecularUnitDomain(Domain):
     #print self.reflectiveBoundary
     #quit()
 
+    # same thing for top/bottom along z direction [sub(2)]
     #PKH 120901 topBottomBoundary=self.PeriodicTopBottomBoundary()
     if(nDim>2):
       topBottomBoundary=self.TopBottomBoundary()
@@ -109,8 +116,9 @@ class MolecularUnitDomain(Domain):
       else:
         print "Labeling %s as reflective" % self.reflectiveBoundary
 
-    testBC=1
-    if(testBC==1):
+    # for visualizing the applied bcs above 
+    testBC=True
+    if(testBC):
       z = Function(problem.V)
       tc1.apply(z.vector())
       tc2.apply(z.vector())
