@@ -1,17 +1,19 @@
 # very simple module for homogenzation 
 
-from homog  import *
-def runHomog(fileXML="test.xml",psi="none",smolMode=False,q=0,verbose=False,\
+#from homog  import *
+import homog
+import MolecularUnitDomain
+from dolfin import *
+def runHomog(fileXML="test.xml",psi="none",verbose=False,\
              gamer=0,reflectiveBoundary="none",solver="gmres"):
   fileSubdomains = "none"
   #psiVals = np.asarray(psi.vector()[:])
   #print "Min/Max potent", np.min(psiVals), np.max(psiVals)
-  molDomUnit = MolecularUnitDomain(fileXML,fileSubdomains,\
-                 reflectiveBoundary=reflectiveBoundary,gamer=gamer,\
-                 psi=psi,q=q)
+  molDomUnit = MolecularUnitDomain.MolecularUnitDomain(fileXML,fileSubdomains,\
+                 reflectiveBoundary=reflectiveBoundary,gamer=0)
   molDomUnit.Setup()
   molDomUnit.AssignBC()
-  solve_homogeneous_unit(molDomUnit,smolMode=smolMode,solver=solver)
+  homog.solve_homogeneous_unit(molDomUnit,solver=solver)
 
   problem = molDomUnit.problem
   if(verbose and MPI.rank(mpi_comm_world())==0):

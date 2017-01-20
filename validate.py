@@ -52,6 +52,7 @@ if __name__ == "__main__":
     # calls 'doit' with the next argument following the argument '-validation'
     if(arg=="-validation"):
       doit()      
+      quit()
   
 
 
