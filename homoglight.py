@@ -1,17 +1,46 @@
 # very simple module for homogenzation 
 
 #from homog  import *
-import homog
 import MolecularUnitDomain
 from dolfin import *
+
+
+
+class empty:pass
+
+
+from dolfin import *
+import numpy as np
+from params import *
+parms = params() # conflicts with params from smol
+
+# classes
+from DefaultUnitDomain import *
+from MolecularUnitDomain import *
+import field 
+
+
+
+## solv. homog cell
+def solve_homogeneous_unit(domain,debug=False,solver="gmres"):
+  #print "WARNING: assuming D=1."
+  parms.D = 1.0
+  problem = domain.problem
+
+  ## debug mode
+  field.solveHomog(domain,solver=solver)
+  d_eff = field.compute_eff_diff(domain)
+
+  problem.d_eff = d_eff
+
 def runHomog(fileXML="test.xml",verbose=False,\
              reflectiveBoundary=None):
   fileSubdomains = None   
-  molDomUnit = MolecularUnitDomain.MolecularUnitDomain(fileXML,fileSubdomains,\
+  molDomUnit = MolecularUnitDomain(fileXML,fileSubdomains,\
                  reflectiveBoundary=reflectiveBoundary)          
   molDomUnit.Setup()
   molDomUnit.AssignBC()
-  homog.solve_homogeneous_unit(molDomUnit,solver="gmres") 
+  solve_homogeneous_unit(molDomUnit,solver="gmres") 
 
   problem = molDomUnit.problem
   if(verbose and MPI.rank(mpi_comm_world())==0):

@@ -25,32 +25,6 @@ from dolfin import *
 from params import *
 from Domain import *
 
-markerActiveSite = 1
-markerMolecularBoundary =4
-markerOuterBoundary=5
-
-
-#class TestRL(SubDomain):
-#  def inside(self, x, on_boundary):
-#    cond = (np.abs(x[0]- -1) < EPS or np.abs(x[0]-1) < EPS)
-#    #if(on_boundary):
-#    #  print "x",x[0],cond
-#    return (on_boundary and cond)
-#
-#class TestTB(SubDomain):
-#  def inside(self, x, on_boundary):
-#    cond = (np.abs(x[1]- -1) < EPS or np.abs(x[1]-1) < EPS)
-#    #if(on_boundary):
-#    #  print "y",x[1],cond
-#    return (on_boundary and cond)
-#
-#class TestBF(SubDomain):
-#  def inside(self, x, on_boundary):
-#    cond = (np.abs(x[2]- -1) < EPS or np.abs(x[2]-1) < EPS)
-#    #if(on_boundary):
-#    #  print "z",x[2],cond
-#    return (on_boundary and cond)
-
 
 #
 class MolecularUnitDomain(Domain):
@@ -70,8 +44,6 @@ class MolecularUnitDomain(Domain):
     self.reflectiveBoundary = reflectiveBoundary
     problem.name = name
     problem.outpath = outpath
-    self.markerOuterBoundary = markerOuterBoundary
-    problem.smolMode = False
 
   
 

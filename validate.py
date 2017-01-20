@@ -4,9 +4,11 @@ import numpy as np
 
 
 def doit():                 
-  fileXML="/u1/pmke226/srcs/homogenization/example/volfracs/volFrac_0.50.xml.gz"
+  vf = 0.50
+  fileXML="tests/volFrac_0.50.xml.gz"
   problem = hl.runHomog(fileXML,verbose=True)
-  assert(np.abs(problem.d_eff[0]-0.3939)<0.01), "Don't commit! somthing changed"
+  deffHSBound = 2*vf/(3-vf)
+  assert(np.abs(problem.d_eff[0]-deffHSBound)<0.01), "Don't commit! somthing changed"
   #assert(np.abs(4-0.3939)<0.01), "Don't commit! somthing changed"
   print "All is ok!"
   quit()

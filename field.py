@@ -24,7 +24,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 # Revisions
 #       10.08.10 inception
 #
-#  source ~/sources/dolfin_smol/config.bash
 
 from dolfin import *
 from params import *
