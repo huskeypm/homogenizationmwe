@@ -86,42 +86,6 @@ class homogutil:
         c -= mp
         mesh.coordinates()[i] = c
   
-  def DefinePBCMappings(self):
-    prob = self.prob 
-    mesh = prob.mesh
-    (boundsMin,boundIdxMin,boundsMax,boundIdxMax) = self.CalcBounds(mesh)
-
-    # x component 
-    #v0x= np.array(([-1,0,0]))
-    #v1x= np.array(([1,0,0]))
-    v0x = mesh.coordinates()[boundIdxMin[0],:]
-    v1x = mesh.coordinates()[boundIdxMax[0],:]
-    prob.targetsx = [tuple(v1x)]
-    prob.vert_mapx = {}
-    prob.vert_mapx[tuple(v0x)] = tuple(v1x)
-    
-    # y component 
-    v0y = mesh.coordinates()[boundIdxMin[1],:]
-    v1y = mesh.coordinates()[boundIdxMax[1],:]
-    #v0y= np.array(([0,-1,0]))
-    #v1y= np.array(([0,1,0]))
-    prob.targetsy = [tuple(v1y)]
-    prob.vert_mapy = {}
-    prob.vert_mapy[tuple(v0y)] = tuple(v1y)
-
-    print v0x, " maps to " , prob.vert_mapx[ tuple(v0x)  ]
-    print v0y, " maps to " , prob.vert_mapy[ tuple(v0y)  ]
-    
-    # z component 
-    #v0z= np.array(([0,0,-1]))
-    #v1z= np.array(([0,0,1]))
-    if(prob.nDims==3):
-      v0z = mesh.coordinates()[boundIdxMin[2],:]
-      v1z = mesh.coordinates()[boundIdxMax[2],:]
-      prob.targetsz= [tuple(v1z)]
-      prob.vert_mapz = {}
-      prob.vert_mapz[tuple(v0z)] = tuple(v1z)
-      print v0z, " maps to " , prob.vert_mapz[ tuple(v0z)  ]
   
 
   def GeometryInitializations(self):

@@ -133,26 +133,16 @@ def solveHomog(domain,solver="gmres"):
   #print solver.parameters
 
 
+  ## Store solution 
   problem.x = x
-  problem.up = Function(problem.V)   
-
-  Vs = FunctionSpace(mesh,"CG",1)
-  up = project(x[0],V=Vs)    
-  #ar=np.asarray(up.vector())
-
-
-  problem.up.vector()[:] = problem.x.vector()[:]
 
   
-  # save soln
-  #File(problem.name+"_unit.pvd") << problem.up
-
   # save unprojected soln instead 
   fileName = problem.outpath + problem.name+"_unit.pvd"
   if MPI.rank(mpi_comm_world())==0:
     print "Writing ",fileName
   #File(fileName) <<  problem.x   
-  File(fileName) <<  problem.up
+  File(fileName) <<  problem.x   
 
 
   return problem
@@ -173,7 +163,7 @@ def compute_eff_diff(domain):
   # treating each component independtly, following Goel's example in sec 2.7 
   import numpy as np
   omegas = np.zeros(dim)
-  x = problem.up
+  x = problem.x  
   # I iterate only over the diagonal, since my original diffusion constant is diagonal 
   for i in range(dim):
 
