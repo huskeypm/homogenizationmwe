@@ -1,0 +1,6 @@
+# switch to regexp syntax.
+syntax: regexp
+.pyc
+.vtu
+.pvd
+
