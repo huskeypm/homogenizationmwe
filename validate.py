@@ -5,11 +5,15 @@ import numpy as np
 
 def doit():                 
   vf = 0.50
+  # A 3D mesh with an inclusion that occupies a volume fraction of 0.5 
   fileXML="tests/volFrac_0.50.xml.gz"
+ 
+  # Run code  
   problem = hl.runHomog(fileXML,verbose=True)
+
+  # compare against hashin-shtrikman bound for sphere w 0.5 volume fraction 
   deffHSBound = 2*vf/(3-vf)
   assert(np.abs(problem.d_eff[0]-deffHSBound)<0.01), "Don't commit! somthing changed"
-  #assert(np.abs(4-0.3939)<0.01), "Don't commit! somthing changed"
   print "All is ok!"
   quit()
 
@@ -39,7 +43,6 @@ Notes:
 if __name__ == "__main__":
   import sys
   msg = helpmsg()
-  remap = "none"
 
   if len(sys.argv) < 2:
       raise RuntimeError(msg)

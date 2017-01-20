@@ -28,9 +28,7 @@ from Domain import *
 
 #
 class MolecularUnitDomain(Domain):
-  def __init__(self,fileMesh,fileSubdomains,\
-    # scalar (wrong) or field
-    type="field",\
+  def __init__(self,fileMesh,\
     boundaryTol=1e-1,\
     outpath="./",\
     name = "Molecular",\

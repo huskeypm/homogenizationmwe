@@ -27,25 +27,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 from dolfin import *
 from params import *
-parms = params()
-parms.d = 1.0 ; #print "WARNING: overriding parms (conflicting w smol on vm)"
-# PKH not sure if this will work 
 from homogutil import *
 import numpy as np
 
 
 
 EPS = 1.e-10
-################/////////////////
-
-
-# calculate concentration
-def CalcConc(domain):
-  problem = domain.problem
-  mesh = problem.mesh 
-  problem.conc = assemble( problem.x[0] * dx(domain=mesh))
-  problem.conc /= problem.volume
-  
 
 #
 # Solve homogenized diff. eqn based on vector field 
@@ -68,7 +55,7 @@ def solveHomog(domain,solver="gmres"):
   
   ## LHS terms 
   # Diffusion constant
-  Dbulk = parms.d
+  Dbulk = problem.d
   nDims = problem.nDims
   Dii  = Constant(Dbulk*np.ones(nDims))
   Aij = diag(Dii)  # for now, but could be anisotropic
@@ -189,15 +176,15 @@ def compute_eff_diff(domain):
   if MPI.rank(mpi_comm_world())==0:
     print "omegasO ",omegas
 
-  d_eff = parms.d*omegas
+  d_eff = problem.d*omegas
   d_eff /= problem.volUnitCell
   if MPI.rank(mpi_comm_world())==0:
    if(dim==3):
     print "d_eff= [%4.2f,%4.2f,%4.2f] for d=%4.2f"%\
-      (d_eff[0],d_eff[1],d_eff[2],parms.d)
+      (d_eff[0],d_eff[1],d_eff[2],problem.d)
    else: 
     print "d_eff= [%4.2f,%4.2f] for d=%4.2f"%\
-      (d_eff[0],d_eff[1],parms.d)
+      (d_eff[0],d_eff[1],problem.d)
    print "problem.volUnitCell", problem.volUnitCell
 
   # thought I was already storing this somewhere

@@ -1,18 +1,7 @@
 # very simple module for homogenzation 
 
-#from homog  import *
-import MolecularUnitDomain
-from dolfin import *
-
-
-
-class empty:pass
-
-
 from dolfin import *
 import numpy as np
-from params import *
-parms = params() # conflicts with params from smol
 
 # classes
 from DefaultUnitDomain import *
@@ -24,19 +13,16 @@ import field
 ## solv. homog cell
 def solve_homogeneous_unit(domain,debug=False,solver="gmres"):
   #print "WARNING: assuming D=1."
-  parms.D = 1.0
   problem = domain.problem
+  problem.d = 1.0  # diffusion constant
 
   ## debug mode
   field.solveHomog(domain,solver=solver)
-  d_eff = field.compute_eff_diff(domain)
-
-  problem.d_eff = d_eff
+  problem.d_eff = field.compute_eff_diff(domain)
 
 def runHomog(fileXML="test.xml",verbose=False,\
              reflectiveBoundary=None):
-  fileSubdomains = None   
-  molDomUnit = MolecularUnitDomain(fileXML,fileSubdomains,\
+  molDomUnit = MolecularUnitDomain(fileXML,\
                  reflectiveBoundary=reflectiveBoundary)          
   molDomUnit.Setup()
   molDomUnit.AssignBC()

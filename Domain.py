@@ -73,43 +73,6 @@ class Domain(object):
               #print result
               return result 
       
-  class PeriodicLeftRightBoundary(SubDomain):
-          def inside(self, x, on_boundary):
-              # find v1x
-              problem = self.problem 
-              return tuple(x) in problem.targetsx
-      
-      
-          # field component 1
-          def map(self, x, y):
-              problem = self.problem 
-              y[:] = problem.vert_mapx.get(tuple(x), x)
-      
-  class PeriodicBackFrontBoundary(SubDomain):
-          def inside(self, x, on_boundary):
-              # find v1x
-              problem = self.problem 
-              return tuple(x) in problem.targetsy
-      
-      
-          # field component 1
-          def map(self, x, y):
-              problem = self.problem 
-              y[:] = problem.vert_mapy.get(tuple(x), x)
-      
-      
-  class PeriodicTopBottomBoundary(SubDomain):
-          def inside(self, x, on_boundary):
-              # find v1x
-              problem = self.problem 
-              return tuple(x) in problem.targetsz
-      
-      
-          # field component 1
-          def map(self, x, y):
-              problem = self.problem 
-              y[:] = problem.vert_mapz.get(tuple(x), x)
-      
       # Sub domain for Dirichlet boundary condition
   class CenterDomain(SubDomain):
           def inside(self, x, in_boundary):
@@ -148,18 +111,18 @@ class Domain(object):
     #PKHbc1 = PeriodicBC(problem.V.sub(0), PeriodicLeftRightBoundary())
     leftRightBoundary=self.PeriodicLeftRightBoundary()
     leftRightBoundary.problem = self.problem
-    bc1 = PeriodicBC(problem.V.sub(0), leftRightBoundary)
-    bcs.append(bc1)
+    #bc1 = PeriodicBC(problem.V.sub(0), leftRightBoundary)
+    #bcs.append(bc1)
     #PKHbc2 = PeriodicBC(problem.V.sub(1), PeriodicBackFrontBoundary())
     backFrontBoundary=self.PeriodicBackFrontBoundary()
     backFrontBoundary.problem = self.problem
-    bc2 = PeriodicBC(problem.V.sub(1), backFrontBoundary)
-    bcs.append(bc2)
+    #bc2 = PeriodicBC(problem.V.sub(1), backFrontBoundary)
+    #bcs.append(bc2)
     #PKHbc3 = PeriodicBC(problem.V.sub(2), PeriodicTopBottomBoundary())
     topBottomBoundary=self.PeriodicTopBottomBoundary()
     topBottomBoundary.problem = self.problem
-    bc3 = PeriodicBC(problem.V.sub(2), topBottomBoundary)
-    bcs.append(bc3)
+    #bc3 = PeriodicBC(problem.V.sub(2), topBottomBoundary)
+    #bcs.append(bc3)
 
     problem.bcs = bcs
 
