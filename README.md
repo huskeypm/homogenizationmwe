@@ -8,8 +8,11 @@ Minimum working example of 3d homogenization of elliptical PDEs.
 
 ### How do I get set up? ###
 * Set up environment
+
 source config.bash 
+
 * Execute test 
+
 python validation.py -validation
 
 ### Contribution guidelines ###
