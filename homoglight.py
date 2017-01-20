@@ -77,7 +77,7 @@ Notes:
 
 
 
-  runHomog(fileXML,verbose=True,solver=solver)
+  runHomog(fileXML,verbose=True)#,solver=solver)
 
 
 
