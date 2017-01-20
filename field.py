@@ -44,8 +44,6 @@ def CalcConc(domain):
   problem = domain.problem
   mesh = problem.mesh 
   problem.conc = assemble( problem.x[0] * dx(domain=mesh))
-
-  #problem.conc /= assemble( Constant(1)*dx,mesh=problem.mesh)
   problem.conc /= problem.volume
   
 
@@ -90,11 +88,6 @@ def solveHomog(domain,solver="gmres"):
   a = LHS
   
   ## RHS terms 
-  #print "WATNING: still confused about the BC here. Johan says ==0, Gary says we have complicated Jacobian term"
-  #n = FacetNormal(mesh)
-  #L = inner( n,v ) * ds 
-  # Based on Johan's May 14 email, because (d X + I) .n = 0, we do not apply the BC. 
-  
   # add in RHS from earlier 
   L = RHS
 
@@ -181,7 +174,6 @@ def compute_eff_diff(domain):
   import numpy as np
   omegas = np.zeros(dim)
   x = problem.up
-  # Believe it is correct now print "WARNING: verify accuracy of this calculation"
   # I iterate only over the diagonal, since my original diffusion constant is diagonal 
   for i in range(dim):
 
@@ -206,17 +198,7 @@ def compute_eff_diff(domain):
 
   if MPI.rank(mpi_comm_world())==0:
     print "omegasO ",omegas
-  #print omegas/vol
-  #problem.omv = omegas/vol
-  #problem.domv = parms.d*omegas/vol
-  #problem.d_eff = problem.domv 
-  #print "WARNING: circumventing use of volUnitCell etc for determining deff"
-  #return problem.d_eff 
-  #print "vol", vol
-  
-  
-  #print "WARNING: what is gamma?" 
-  #omegas /= problem.gamma
+
   d_eff = parms.d*omegas
   d_eff /= problem.volUnitCell
   if MPI.rank(mpi_comm_world())==0:
@@ -231,46 +213,8 @@ def compute_eff_diff(domain):
   # thought I was already storing this somewhere
   problem.volFrac = vol / problem.volUnitCell
 
-  # normalize
-  #nd_eff= d_eff/ np.linalg.norm(d_eff)
-  #print "Deff (normalized) ", nd_eff
 
   # store 
   problem.d_eff = d_eff
   
   return d_eff
-
-class empty:pass
-
-def doit(fileIn):
-  # Create mesh and define function space
-  defaultDom = DefaultUnitDomain()
-  mesh = UnitCube(8,8,8)
-  problem = empty()
-  problem.mesh = mesh 
-  solveHomog(defaultDom,type="field")
- 
-import sys
-
-if __name__ == "__main__":
-  msg="Purpose: Runs diff. eqn with field as test function "
-  msg=msg+"Usage: "
-  msg=msg+"script.py <arg>"
-  msg=msg+"Notes:"
-  remap = "none"
-
-
-  import sys
-  if len(sys.argv) < 2:
-      raise RuntimeError(msg)
-
-  fileIn= sys.argv[1]
-  if(len(sys.argv)==3):
-    1
-
-
-
-  print "DOES NOT YIELD CORRECT ANSWERS FOR MPI" 
-  doit(fileIn)
-
-
