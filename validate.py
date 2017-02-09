@@ -53,6 +53,7 @@ Notes:
 #
 # MAIN routine executed when launching this script from command line 
 #
+fileXML = "tests/volFrac_0.50.xml.gz"
 if __name__ == "__main__":
   import sys
   msg = helpmsg()
@@ -71,9 +72,11 @@ if __name__ == "__main__":
     if(arg=="-validation"):
       run()      
       quit()
+    elif(arg=="-fileXML"): 
+      fileXML=sys.argv[i+1]
+      print fileXML
     elif(arg=="-run"): 
       run(fileXML=sys.argv[i+1])
-      quit()
     #expects
 # python validate.py -runUnitCell 0,0,0,50,50,50
     elif(arg=="-runUnitCell"):
@@ -86,7 +89,7 @@ if __name__ == "__main__":
       print boxMin,boxMax
       #boxMin=np.asarray([0,0,0])
       #boxMax=np.asarray([50.,50.,50.])
-      run(boxMin=boxMin,boxMax=boxMax)
+      run(fileXML=fileXML,boxMin=boxMin,boxMax=boxMax)
       quit()
     elif(arg=="-test"): 
       test()
