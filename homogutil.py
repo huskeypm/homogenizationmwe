@@ -35,23 +35,29 @@ class homogutil:
   def __init__(self,problem=0):
     self.prob = problem 
 
-  def CalcBounds(self,mesh):
+  def CalcBounds(self,mesh,boundsMin=None,boundsMax=None):
     prob = self.prob
   
     V = FunctionSpace(mesh, "Lagrange", 1)
     prob.nDims = np.shape(mesh.coordinates())[1]
-    boundsMin=np.zeros(prob.nDims)
-    boundsMax=np.zeros(prob.nDims)
 
-    # need to use 'gather' to poll all the CPUs for their parts of the mesh
-    for i in range(prob.nDims):
-      tag = "x[%d]"%i
-      u = interpolate(Expression(tag), V)
-      x = Vector()
-      u.vector().gather(x, np.array(range(V.dim()), "intc"))
-      boundsMin[i] =np.min(x.array())
-      boundsMax[i] =np.max(x.array())
+    # use user-provided bound range
+    if boundsMin!=None:
+      1
+    else:
+      boundsMin=np.zeros(prob.nDims)
+      boundsMax=np.zeros(prob.nDims)
 
+      # need to use 'gather' to poll all the CPUs for their parts of the mesh
+      for i in range(prob.nDims):
+        tag = "x[%d]"%i
+        u = interpolate(Expression(tag), V)
+        x = Vector()
+        u.vector().gather(x, np.array(range(V.dim()), "intc"))
+        boundsMin[i] =np.min(x.array())
+        boundsMax[i] =np.max(x.array())
+
+    # assign
     prob.boundsMin = boundsMin
     prob.boundsMax = boundsMax
 

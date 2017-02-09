@@ -126,7 +126,7 @@ class Domain(object):
 
 
 
-  def CalcGeom(self,problem):
+  def CalcGeom(self,problem,boundsMin=None,boundsMax=None):
     # SA
     mesh = problem.mesh
     areaExpr = Constant(1.) * ds(domain=mesh)
@@ -142,7 +142,7 @@ class Domain(object):
     #print "SA: %e [um^2]" % area
     #print "Volume: %e [um^3]" % vol  
 
-    (boundsMin,boundIdxMin,boundsMax,boundIdxMax) = self.utilObj.CalcBounds(problem.mesh) 
+    (boundsMin,boundIdxMin,boundsMax,boundIdxMax) = self.utilObj.CalcBounds(problem.mesh, boundsMin=boundsMin,boundsMax=boundsMax) 
     diff = boundsMax-boundsMin
     totVol = np.product(diff)
     if MPI.rank(mpi_comm_world())==0:

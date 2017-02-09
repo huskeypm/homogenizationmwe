@@ -1,21 +1,34 @@
 
+import numpy as np
 import homoglight as hl 
 import numpy as np
+from dolfin import *
 
+def test(): 
+  fileXML="tests/squarehole_in_square.xml"  
+  problem = hl.runHomog(fileXML,verbose=True)
+  print problem.d_eff     # should have smallest volume fraction, hence smallest deff  
 
-def doit():                 
-  vf = 0.50
-  # A 3D mesh with an inclusion that occupies a volume fraction of 0.5 
-  fileXML="tests/volFrac_0.50.xml.gz"
+  # these two should ahve comparable deffs (occupy about the same vol frac of nearly 1.0)
+  fileXML="tests/square_in_square.xml"  
+  problem = hl.runHomog(fileXML,verbose=True)
+  print problem.d_eff 
+  fileXML="tests/squares_in_square.xml"
+  problem = hl.runHomog(fileXML,verbose=True)
+  print problem.d_eff 
+
+def run(fileXML="tests/volFrac_0.50.xml.gz",
+  boxMin=None,boxMax=None):
  
   # Run code  
-  problem = hl.runHomog(fileXML,verbose=True)
+  mesh = Mesh(fileXML)
+  V = FunctionSpace(mesh,"CG",1)
+  print "vol",assemble(Constant(1.)*dx(domain=mesh))
 
-  # compare against hashin-shtrikman bound for sphere w 0.5 volume fraction 
-  deffHSBound = 2*vf/(3-vf)
-  assert(np.abs(problem.d_eff[0]-deffHSBound)<0.01), "Don't commit! somthing changed"
-  print "All is ok!"
-  quit()
+
+  problem = hl.runHomog(fileXML,verbose=True,
+    boxMin=boxMin,boxMax=boxMax)
+ 
 
 #
 # Message printed when program run without arguments 
@@ -54,9 +67,29 @@ if __name__ == "__main__":
 
   # Loops over each argument in the command line 
   for i,arg in enumerate(sys.argv):
-    # calls 'doit' with the next argument following the argument '-validation'
+    # calls 'run' with the next argument following the argument '-validation'
     if(arg=="-validation"):
-      doit()      
+      run()      
+      quit()
+    elif(arg=="-run"): 
+      run(fileXML=sys.argv[i+1])
+      quit()
+    #expects
+# python validate.py -runUnitCell 0,0,0,50,50,50
+    elif(arg=="-runUnitCell"):
+      mystr    = sys.argv[i+1]
+      #mystr = "0,0,0,50,50,50"
+      myspl = mystr.split(',')
+      myspl = [np.float(i) for i in myspl]
+      boxMin= np.asarray(myspl[0:3])
+      boxMax= np.asarray(myspl[3:6])
+      print boxMin,boxMax
+      #boxMin=np.asarray([0,0,0])
+      #boxMax=np.asarray([50.,50.,50.])
+      run(boxMin=boxMin,boxMax=boxMax)
+      quit()
+    elif(arg=="-test"): 
+      test()
       quit()
   
 

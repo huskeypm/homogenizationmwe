@@ -27,10 +27,14 @@ def solve_homogeneous_unit(domain,debug=False,solver="gmres"):
 
 def runHomog(fileXML="test.xml",
              verbose=False,\
+             boxMin=None,   
+             boxMax=None,   
              solver = "gmres",  # default solver, but krylov is available 
              reflectiveBoundary=None):
   # domain set up              
   molDomUnit = MolecularUnitDomain(fileXML,\
+                 boxMin=boxMin,
+                 boxMax=boxMax,
                  reflectiveBoundary=reflectiveBoundary)          
   molDomUnit.Setup()
   molDomUnit.AssignBC()
@@ -80,6 +84,8 @@ Notes:
   fileIn= sys.argv[1]
   solver="gmres"
   fileXML = "none" 
+  boxMin=None
+  boxMax=None
   for i,arg in enumerate(sys.argv):
     if(arg=="-file"):
       fileXML=sys.argv[i+1] 
@@ -90,7 +96,7 @@ Notes:
 
 
 
-  runHomog(fileXML,verbose=True,solver=solver)
+  runHomog(fileXML,verbose=True,solver=solver,boxMin=boxMin,boxMax=boxMax)
 
 
 

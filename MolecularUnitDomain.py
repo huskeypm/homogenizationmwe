@@ -32,6 +32,8 @@ class MolecularUnitDomain(Domain):
     boundaryTol=1e-1,\
     outpath="./",\
     name = "Molecular",\
+    boxMin=None,
+    boxMax=None,
     reflectiveBoundary="none"  # use this to force outer cell boundary as reflective, instead of dirichlet
                                # this is equivalent to having an inclusion boundary coincident with the unit cell boundary
     ):
@@ -39,6 +41,8 @@ class MolecularUnitDomain(Domain):
     problem = self.problem
     problem.fileMesh = fileMesh
     self.reflectiveBoundary = reflectiveBoundary
+    self.boxMin = boxMin
+    self.boxMax = boxMax
     problem.name = name
     problem.outpath = outpath
 
@@ -57,10 +61,15 @@ class MolecularUnitDomain(Domain):
     # PKH PBC Not used anymore 
     #utilObj.DefinePBCMappings()
 
+
     problem.V = VectorFunctionSpace(mesh,"CG",1)
 
     # geom
-    self.CalcGeom(problem)
+    self.CalcGeom(problem, 
+      boundsMin=self.boxMin,
+      boundsMax=self.boxMax) 
+   
+    
 
 
   # bcs
