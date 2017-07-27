@@ -59,6 +59,8 @@ import sys
 # Revisions
 #       10.08.10 inception
 #
+def test():
+  print "Good morniing!"
 
 if __name__ == "__main__":
   import sys

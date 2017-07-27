@@ -51,7 +51,8 @@ class homogutil:
       # need to use 'gather' to poll all the CPUs for their parts of the mesh
       for i in range(prob.nDims):
         tag = "x[%d]"%i
-        u = interpolate(Expression(tag), V)
+        #u = interpolate(Expression(tag), V)
+        u = interpolate(Expression(tag), V,degree=2)
         x = Vector()
         u.vector().gather(x, np.array(range(V.dim()), "intc"))
         boundsMin[i] =np.min(x.array())
