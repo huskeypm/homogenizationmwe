@@ -42,8 +42,9 @@ class homogutil:
     prob.nDims = np.shape(mesh.coordinates())[1]
 
     # use user-provided bound range
-    if boundsMin!=None:
+    if type(boundsMin) is np.ndarray:
       1
+    # find dimensions 
     else:
       boundsMin=np.zeros(prob.nDims)
       boundsMax=np.zeros(prob.nDims)
