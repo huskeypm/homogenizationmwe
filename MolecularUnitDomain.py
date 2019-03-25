@@ -52,7 +52,7 @@ class MolecularUnitDomain(Domain):
     # mesh
     problem = self.problem
     if MPI.rank(mpi_comm_world())==0:
-      print "Attempting to load ", problem.fileMesh
+      print("Attempting to load ", problem.fileMesh)
     mesh = Mesh(problem.fileMesh)
     problem.mesh = mesh
 
@@ -98,7 +98,7 @@ class MolecularUnitDomain(Domain):
     if(self.reflectiveBoundary!="leftright"):
       bcs.append(bc1)
     else:
-      print "Labeling %s as reflective" % self.reflectiveBoundary
+      print("Labeling %s as reflective" % self.reflectiveBoundary)
 
     # same thing for top/bottom along y direction [sub(1)]
     backFrontBoundary=self.BackFrontBoundary()
@@ -108,7 +108,7 @@ class MolecularUnitDomain(Domain):
     if(self.reflectiveBoundary!="backfront"):
       bcs.append(bc2)
     else:
-      print "Labeling %s as reflective" % self.reflectiveBoundary
+      print("Labeling %s as reflective" % self.reflectiveBoundary)
     #print self.reflectiveBoundary
     #quit()
 
@@ -123,7 +123,7 @@ class MolecularUnitDomain(Domain):
       if(self.reflectiveBoundary!="topbottom"):
         bcs.append(bc3)
       else:
-        print "Labeling %s as reflective" % self.reflectiveBoundary
+        print("Labeling %s as reflective" % self.reflectiveBoundary)
 
     # for visualizing the applied bcs above 
     testBC=True

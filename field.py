@@ -127,7 +127,7 @@ def solveHomog(domain,solver="gmres"):
   # save unprojected soln instead 
   fileName = problem.outpath + problem.name+"_unit.pvd"
   if MPI.rank(mpi_comm_world())==0:
-    print "Writing ",fileName
+    print("Writing ",fileName)
   #File(fileName) <<  problem.x   
   File(fileName) <<  problem.x   
 
@@ -175,7 +175,7 @@ def compute_eff_diff(domain):
   
 
   if MPI.rank(mpi_comm_world())==0:
-    print "omegasO ",omegas
+    print("omegasO ",omegas)
 
   # normalize by volumeUnitCell to get deff
   d_eff = problem.d*omegas
@@ -183,12 +183,12 @@ def compute_eff_diff(domain):
 
   if MPI.rank(mpi_comm_world())==0:
    if(dim==3):
-    print "d_eff= [%4.2f,%4.2f,%4.2f] for d=%4.2f"%\
-      (d_eff[0],d_eff[1],d_eff[2],problem.d)
+    print("d_eff= [%4.2f,%4.2f,%4.2f] for d=%4.2f"%\
+      (d_eff[0],d_eff[1],d_eff[2],problem.d))
    else: 
-    print "d_eff= [%4.2f,%4.2f] for d=%4.2f"%\
-      (d_eff[0],d_eff[1],problem.d)
-   print "problem.volUnitCell", problem.volUnitCell
+    print("d_eff= [%4.2f,%4.2f] for d=%4.2f"%\
+      (d_eff[0],d_eff[1],problem.d))
+   print("problem.volUnitCell", problem.volUnitCell)
 
   # report volume frac for validation purposes 
   vol = assemble( Constant(1)*dx_int)#, mesh=mesh )  

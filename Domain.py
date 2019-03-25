@@ -146,8 +146,8 @@ class Domain(object):
     diff = boundsMax-boundsMin
     totVol = np.product(diff)
     if MPI.rank(mpi_comm_world())==0:
-      print "Total volume (assuming rectangular): %e [um^3]" % totVol
-      print "volume fraction (assuming rectangular): %e [um^3]" % (vol/totVol)
+      print("Total volume (assuming rectangular): %e [um^3]" % totVol)
+      print("volume fraction (assuming rectangular): %e [um^3]" % (vol/totVol))    
     problem.volUnitCell = totVol
     
 

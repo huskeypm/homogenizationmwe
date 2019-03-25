@@ -45,10 +45,10 @@ def runHomog(fileXML="test.xml",
   # report results
   problem = molDomUnit.problem
   if(verbose and MPI.rank(mpi_comm_world())==0):
-    print "From master node:" 
-    print "vol domain:", problem.volume
-    print "vol unit cell:", problem.volUnitCell
-    print "Deff:", problem.d_eff
+    print("From master node:")
+    print("vol domain:", problem.volume)
+    print("vol unit cell:", problem.volUnitCell)
+    print("Deff:", problem.d_eff)
   return problem 
 
 
@@ -60,7 +60,8 @@ import sys
 #       10.08.10 inception
 #
 def test():
-  print "Good morniing!"
+  #print "Good morniing!"
+  1
 
 if __name__ == "__main__":
   import sys
